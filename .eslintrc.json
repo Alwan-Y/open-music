@@ -12,6 +12,7 @@
     "rules": {
         "no-console": "off",
         "no-underscore-dangle": "off",
-        "indent": ["error", 4]
+        "indent": ["error", 4],
+        "allowTemplateLiterals": true
     }
 }
