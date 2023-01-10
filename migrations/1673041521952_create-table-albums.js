@@ -3,34 +3,32 @@
 exports.shorthands = undefined;
 
 exports.up = (pgm) => {
-    pgm.createTable('notes', {
+    pgm.createTable('albums', {
         id: {
             type: 'VARCHAR(50)',
             primaryKey: true,
         },
-        title: {
+        name: {
             type: 'TEXT',
             notNull: true,
         },
-        body: {
-            type: 'TEXT',
-            notNull: true,
-        },
-        tags: {
-            type: 'TEXT[]',
+        year: {
+            type: 'INTEGER',
             notNull: true,
         },
         created_at: {
-            type: 'TEXT',
+            type: 'timestamp',
             notNull: true,
+            default: pgm.func('current_timestamp'),
         },
         updated_at: {
-            type: 'TEXT',
+            type: 'timestamp',
             notNull: true,
+            default: pgm.func('current_timestamp'),
         },
     });
 };
 
 exports.down = (pgm) => {
-    pgm.dropTable('notes');
+    pgm.dropTable('albums');
 };
