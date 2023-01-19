@@ -36,11 +36,9 @@ class SongsService {
 
     async getSongs(query) {
         const querySong = 'SELECT id, title, performer FROM songs'.concat(' ', query);
-        console.log(querySong)
 
         const result = await this._pool.query(querySong);
-        console.log('asdasd')
-        console.log(result.rows)
+
         return result.rows;
     }
 

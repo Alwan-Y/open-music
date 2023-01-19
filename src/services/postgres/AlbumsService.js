@@ -39,7 +39,7 @@ class AlbumsService {
         const querySongs = {
             text: 'SELECT songs.id, songs.title, songs.performer FROM songs LEFT JOIN albums ON songs.album_id = albums.id WHERE albums.id = $1',
             values: [id],
-        }
+        };
 
         const resultAlbum = await this._pool.query(queryAlbum);
         const resultSongs = await this._pool.query(querySongs);
@@ -50,7 +50,7 @@ class AlbumsService {
 
         return {
             ...resultAlbum.rows[0],
-            songs: resultSongs.rows
+            songs: resultSongs.rows,
         };
     }
 

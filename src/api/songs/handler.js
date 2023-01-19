@@ -1,5 +1,4 @@
 const autoBind = require('auto-bind');
-const ClientError = require('../../exceptions/ClientError');
 
 class SongsHandler {
     constructor(service, validator) {
@@ -40,22 +39,20 @@ class SongsHandler {
         return response;
     }
 
-    async getSongsHandler(request, h) {
-        console.log('masuk')
+    async getSongsHandler(request) {
+        const { title, performer } = request.query;
 
-        const { title, performer } = request.query
-
-        let query = ''
+        let query = '';
         if (title && performer) {
-            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%' AND lower(performer) LIKE '%${performer.toLowerCase()}%'`
+            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%' AND lower(performer) LIKE '%${performer.toLowerCase()}%'`;
         }
 
         if (title && !performer) {
-            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%'`
+            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%'`;
         }
 
         if (!title && performer) {
-            query = `WHERE lower(performer) LIKE '%${performer.toLowerCase()}%'`
+            query = `WHERE lower(performer) LIKE '%${performer.toLowerCase()}%'`;
         }
 
         const songs = await this._service.getSongs(query);
@@ -67,7 +64,7 @@ class SongsHandler {
         };
     }
 
-    async getSongByIdHandler(request, h) {
+    async getSongByIdHandler(request) {
         const { id } = request.params;
         const song = await this._service.getSongById(id);
         return {
@@ -78,7 +75,7 @@ class SongsHandler {
         };
     }
 
-    async putSongByIdHandler(request, h) {
+    async putSongByIdHandler(request) {
         this._validator.validateSongPayload(request.payload);
         const { id } = request.params;
 
@@ -90,7 +87,7 @@ class SongsHandler {
         };
     }
 
-    async deleteSongByIdHandler(request, h) {
+    async deleteSongByIdHandler(request) {
         const { id } = request.params;
         await this._service.deleteSongById(id);
         return {

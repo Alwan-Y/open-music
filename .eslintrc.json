@@ -13,6 +13,6 @@
         "no-console": "off",
         "no-underscore-dangle": "off",
         "indent": ["error", 4],
-        "allowTemplateLiterals": true
+        "allowTemplateLiterals": 0
     }
 }
