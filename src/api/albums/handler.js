@@ -13,6 +13,8 @@ class AlbumsHandler {
         this._validator.validateAlbumPayload(request.payload);
         const { name, year } = request.payload;
 
+        console.log('asdasd');
+
         const albumId = await this._service.addAlbum({ name, year });
 
         const response = h.response({
