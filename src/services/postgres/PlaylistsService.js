@@ -6,10 +6,11 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const { mapDBToModel } = require('../../utils');
 
 class PlaylistsService {
-    constructor(collaborationService) {
+    constructor(collaborationService, playlistSongActivitiesService) {
         this._pool = new Pool();
 
         this._collaborationService = collaborationService;
+        this._playlistSongActivitiesService = playlistSongActivitiesService;
     }
 
     async addPlaylist({ name, owner }) {
@@ -76,7 +77,9 @@ class PlaylistsService {
         }
     }
 
-    async addSongToPlaylist({ playlistId, songId }) {
+    async addSongToPlaylist({
+        playlistId, songId, credentialId, action,
+    }) {
         const id = `playlistsong-${nanoid(16)}`;
 
         const query = {
@@ -89,6 +92,10 @@ class PlaylistsService {
         if (!result.rows.length) {
             throw new InvariantError('Lagu gagal ditambahkan ke playlist');
         }
+
+        this._playlistSongActivitiesService.addPlaylistSongActivity({
+            playlistId, songId, credentialId, action,
+        });
 
         return result.rows[0].id;
     }
@@ -123,7 +130,9 @@ class PlaylistsService {
         return playlist;
     }
 
-    async deleteSongFromPlaylist(playlistId, songId) {
+    async deleteSongFromPlaylist({
+        playlistId, songId, credentialId, action,
+    }) {
         const query = {
             text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
             values: [playlistId, songId],
@@ -134,6 +143,10 @@ class PlaylistsService {
         if (!result.rows.length) {
             throw new InvariantError('Lagu gagal dihapus dari playlist. Id tidak ditemukan');
         }
+
+        this._playlistSongActivitiesService.addPlaylistSongActivity({
+            playlistId, songId, credentialId, action,
+        });
     }
 
     async verifyPlaylistAccess(playlistId, userId) {
@@ -164,6 +177,24 @@ class PlaylistsService {
         if (!result.rows.length) {
             throw new NotFoundError('Lagu gagal ditambahkan ke playlist. songs tidak ditemukan');
         }
+    }
+
+    async getPlaylistSongActivities(playlistId) {
+        const query = {
+            text: `SELECT playlist_song_activities.id, playlist_song_activities.playlist_id, playlist_song_activities.song_id, playlist_song_activities.user_id, playlist_song_activities.action, playlist_song_activities.time, users.username
+            FROM playlist_song_activities
+            LEFT JOIN users ON playlist_song_activities.user_id = users.id
+            WHERE playlist_song_activities.playlist_id = $1`,
+            values: [playlistId],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rows.length) {
+            throw new InvariantError('Playlist Activities tidak ditemukan');
+        }
+
+        return result.rows;
     }
 }
 
