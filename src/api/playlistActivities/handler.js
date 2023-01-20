@@ -20,8 +20,6 @@ class PlaylistSongActivitiesHandler {
         const playlistID = activities[0].playlist_id;
         const mapActivities = activities.map(mapDbToModelActivities);
 
-        console.log(mapActivities);
-
         return {
             status: 'success',
             data: {
