@@ -28,9 +28,18 @@ class PlaylistSongActivities {
 
     async getPlaylistSongActivities(playlistId) {
         const query = {
-            text: `SELECT playlist_song_activities.id, playlist_song_activities.playlist_id, playlist_song_activities.song_id, playlist_song_activities.user_id, playlist_song_activities.action, playlist_song_activities.time, users.username
+            text: `SELECT 
+                playlist_song_activities.id, 
+                playlist_song_activities.playlist_id, 
+                playlist_song_activities.song_id, 
+                playlist_song_activities.user_id, 
+                playlist_song_activities.action, 
+                playlist_song_activities.time, 
+                users.username,
+                songs.title
             FROM playlist_song_activities
             LEFT JOIN users ON playlist_song_activities.user_id = users.id
+            LEFT JOIN songs ON playlist_song_activities.song_id = songs.id
             WHERE playlist_song_activities.playlist_id = $1`,
             values: [playlistId],
         };

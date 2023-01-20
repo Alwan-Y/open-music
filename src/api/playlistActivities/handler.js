@@ -1,30 +1,32 @@
 const autoBind = require('auto-bind');
+const { mapDbToModelActivities } = require('../../utils');
 
 class PlaylistSongActivitiesHandler {
-    constructor(service) {
-        this._service = service;
+    constructor(playlistSongActivitiesService, playlistsService) {
+        this._playlistSongActivitiesService = playlistSongActivitiesService;
+        this._playlistsService = playlistsService;
 
         autoBind(this);
     }
 
-    async postPlaylistSongActivityHandler({
-        playlistId, songId, userId, action,
-    }) {
-        const insertToActivities = await this._service.addPlaylistSongActivity({
-            playlistId, songId, userId, action,
-        });
-
-        return insertToActivities;
-    }
-
     async getPlaylistSongActivitiesHandler(request) {
         const { playlistId } = request.params;
-        const activities = await this._service.getPlaylistSongActivities(playlistId);
+        const { id: credentialId } = request.auth.credentials;
+
+        await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
+        const activities = await this._playlistSongActivitiesService
+            .getPlaylistSongActivities(playlistId);
+
+        const playlistID = activities[0].playlist_id;
+        const mapActivities = activities.map(mapDbToModelActivities);
+
+        console.log(mapActivities);
 
         return {
             status: 'success',
             data: {
-                activities,
+                playlistId: playlistID,
+                activities: mapActivities,
             },
         };
     }
