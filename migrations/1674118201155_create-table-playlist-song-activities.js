@@ -15,14 +15,10 @@ exports.up = (pgm) => {
         song_id: {
             type: 'VARCHAR(50)',
             notNull: true,
-            foreignKeys: true,
-            reference: 'songs(id)',
         },
         user_id: {
             type: 'VARCHAR(50)',
             notNull: true,
-            foreignKeys: true,
-            reference: 'users(id)',
         },
         action: {
             type: 'TEXT',
