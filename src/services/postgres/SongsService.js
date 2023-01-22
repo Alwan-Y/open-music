@@ -14,7 +14,7 @@ class SongsService {
         performer,
         genre,
         duration,
-        albumId = '',
+        albumId,
     }) {
         const id = `song-${nanoid(16)}`;
         const createdAt = new Date().toISOString();
@@ -63,7 +63,7 @@ class SongsService {
         performer,
         genre,
         duration,
-        albumId = '',
+        albumId,
     }) {
         const updatedAt = new Date().toISOString();
 
