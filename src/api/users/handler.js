@@ -1,5 +1,4 @@
 const autoBind = require('auto-bind');
-const ClientError = require('../../exceptions/ClientError');
 
 class UsersHandler {
     constructor(service, validator) {
@@ -26,7 +25,7 @@ class UsersHandler {
         return response;
     }
 
-    async getUserByIdHandler(request, h) {
+    async getUserByIdHandler(request) {
         const { id } = request.params;
 
         const user = await this._service.getUserById(id);
@@ -39,7 +38,7 @@ class UsersHandler {
         };
     }
 
-    async getUsersByUsernameHandler(request, h) {
+    async getUsersByUsernameHandler(request) {
         const { username = '' } = request.query;
         const users = await this._service.getUsersByUsername(username);
         return {

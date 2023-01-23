@@ -10,23 +10,8 @@ class SongsHandler {
 
     async postSongHandler(request, h) {
         this._validator.validateSongPayload(request.payload);
-        const {
-            title,
-            year,
-            performer,
-            genre,
-            duration,
-            albumId,
-        } = request.payload;
 
-        const songId = await this._service.addSong({
-            title,
-            year,
-            performer,
-            genre,
-            duration,
-            albumId,
-        });
+        const songId = await this._service.addSong(request.payload);
 
         const response = h.response({
             status: 'success',
@@ -42,20 +27,7 @@ class SongsHandler {
     async getSongsHandler(request) {
         const { title, performer } = request.query;
 
-        let query = '';
-        if (title && performer) {
-            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%' AND lower(performer) LIKE '%${performer.toLowerCase()}%'`;
-        }
-
-        if (title && !performer) {
-            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%'`;
-        }
-
-        if (!title && performer) {
-            query = `WHERE lower(performer) LIKE '%${performer.toLowerCase()}%'`;
-        }
-
-        const songs = await this._service.getSongs(query);
+        const songs = await this._service.getSongs(title, performer);
         return {
             status: 'success',
             data: {

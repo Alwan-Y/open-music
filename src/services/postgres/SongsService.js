@@ -18,11 +18,10 @@ class SongsService {
     }) {
         const id = `song-${nanoid(16)}`;
         const createdAt = new Date().toISOString();
-        const updateAt = createdAt;
 
         const query = {
-            text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
-            values: [id, title, year, performer, genre, duration, albumId, createdAt, updateAt],
+            text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $8) RETURNING id',
+            values: [id, title, year, performer, genre, duration, albumId, createdAt],
         };
 
         const result = await this._pool.query(query);
@@ -34,12 +33,26 @@ class SongsService {
         return result.rows[0].id;
     }
 
-    async getSongs(query) {
+    async getSongs(title, performer) {
+        let query = '';
+
+        if (title && performer) {
+            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%' AND lower(performer) LIKE '%${performer.toLowerCase()}%'`;
+        }
+
+        if (title && !performer) {
+            query = `WHERE lower(title) LIKE '%${title.toLowerCase()}%'`;
+        }
+
+        if (!title && performer) {
+            query = `WHERE lower(performer) LIKE '%${performer.toLowerCase()}%'`;
+        }
+
         const querySong = 'SELECT id, title, performer FROM songs'.concat(' ', query);
 
-        const result = await this._pool.query(querySong);
+        const { rows } = await this._pool.query(querySong);
 
-        return result.rows;
+        return rows;
     }
 
     async getSongById(id) {
@@ -50,7 +63,9 @@ class SongsService {
 
         const result = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        console.log(result.rowCount);
+
+        if (!result.rowCount) {
             throw new NotFoundError('Lagu tidak ditemukan');
         }
 
