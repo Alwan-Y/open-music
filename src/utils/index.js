@@ -20,4 +20,16 @@ const mapDbToModelActivities = ({
     time,
 });
 
-module.exports = { mapDBToModel, mapDbToModelActivities };
+const mapDbToModelAlbums = ({
+    id,
+    name,
+    year,
+    cover,
+}) => ({
+    id,
+    name,
+    year,
+    coverUrl: cover,
+});
+
+module.exports = { mapDBToModel, mapDbToModelActivities, mapDbToModelAlbums };

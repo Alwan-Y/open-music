@@ -2,6 +2,7 @@ const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const { mapDbToModelAlbums } = require('../../utils');
 
 class AlbumsService {
     constructor() {
@@ -32,7 +33,7 @@ class AlbumsService {
 
     async getAlbumById(id) {
         const queryAlbum = {
-            text: 'SELECT id, name, year FROM albums WHERE id = $1',
+            text: 'SELECT id, name, year, cover FROM albums WHERE id = $1',
             values: [id],
         };
 
@@ -49,7 +50,7 @@ class AlbumsService {
         }
 
         return {
-            ...resultAlbum.rows[0],
+            ...resultAlbum.rows.map(mapDbToModelAlbums)[0],
             songs: resultSongs.rows,
         };
     }
@@ -64,7 +65,7 @@ class AlbumsService {
 
         const result = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        if (!result.rowCount) {
             throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
         }
     }
@@ -77,8 +78,34 @@ class AlbumsService {
 
         const result = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        if (!result.rowCount) {
             throw new NotFoundError('Album gagal dihapus. Id tidak ditemukan');
+        }
+    }
+
+    async addAlbumCover(playlistId, cover) {
+        const query = {
+            text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+            values: [cover, playlistId],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rowCount) {
+            throw new NotFoundError('Gagal menambahkan cover. Album tidak ditemukan');
+        }
+    }
+
+    async verifyAlbumExists(id) {
+        const query = {
+            text: 'SELECT * FROM albums WHERE id = $1',
+            values: [id],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rowCount) {
+            throw new NotFoundError('Album tidak ditemukan');
         }
     }
 }

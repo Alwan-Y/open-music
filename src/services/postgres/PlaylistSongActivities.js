@@ -46,7 +46,7 @@ class PlaylistSongActivities {
 
         const result = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        if (!result.rowCount) {
             throw new NotFoundError('Playlist Activities tidak ditemukan');
         }
 
