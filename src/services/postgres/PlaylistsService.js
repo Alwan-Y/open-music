@@ -6,11 +6,12 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const { mapDBToModel } = require('../../utils');
 
 class PlaylistsService {
-    constructor(collaborationService, playlistSongActivitiesService) {
+    constructor(collaborationService, playlistSongActivitiesService, cacheService) {
         this._pool = new Pool();
 
         this._collaborationService = collaborationService;
         this._playlistSongActivitiesService = playlistSongActivitiesService;
+        this._cacheService = cacheService;
     }
 
     async addPlaylist({ name, owner }) {
@@ -96,38 +97,45 @@ class PlaylistsService {
         this._playlistSongActivitiesService.addPlaylistSongActivity({
             playlistId, songId, credentialId, action,
         });
-
+        await this._cacheService.delete(`playlist:${playlistId}`);
         return result.rows[0].id;
     }
 
     async getSongsFromPlaylist(playlistId) {
-        const query = {
-            text: `SELECT 
-                        playlists.id,
-                        playlists."name",
-                        users.username,
-                        songs.id as songs_id,
-                        songs.title,
-                        songs.performer 
-                    FROM playlists  
-                    LEFT JOIN playlist_songs on playlists.id = playlist_songs.playlist_id 
-                    LEFT JOIN songs on playlist_songs.song_id = songs.id 
-                    LEFT JOIN users on playlists."owner" = users.id
-                    WHERE playlist_songs.playlist_id = $1`,
-            values: [playlistId],
-        };
+        try {
+            const result = await this._cacheService.get(`playlist:${playlistId}`);
+            return JSON.parse(result);
+        } catch (error) {
+            const query = {
+                text: `SELECT 
+                            playlists.id,
+                            playlists."name",
+                            users.username,
+                            songs.id as songs_id,
+                            songs.title,
+                            songs.performer 
+                        FROM playlists  
+                        LEFT JOIN playlist_songs on playlists.id = playlist_songs.playlist_id 
+                        LEFT JOIN songs on playlist_songs.song_id = songs.id 
+                        LEFT JOIN users on playlists."owner" = users.id
+                        WHERE playlist_songs.playlist_id = $1`,
+                values: [playlistId],
+            };
 
-        const result = await this._pool.query(query);
-        const songs = result.rows.map(mapDBToModel);
+            const result = await this._pool.query(query);
+            const songs = result.rows.map(mapDBToModel);
 
-        const playlist = {
-            id: result.rows[0].id,
-            name: result.rows[0].name,
-            username: result.rows[0].username,
-            songs,
-        };
+            const playlist = {
+                id: result.rows[0].id,
+                name: result.rows[0].name,
+                username: result.rows[0].username,
+                songs,
+            };
 
-        return playlist;
+            await this._cacheService.set(`playlist:${playlistId}`, JSON.stringify(playlist));
+
+            return playlist;
+        }
     }
 
     async deleteSongFromPlaylist({
@@ -143,6 +151,8 @@ class PlaylistsService {
         if (!result.rowCount) {
             throw new InvariantError('Lagu gagal dihapus dari playlist. Id tidak ditemukan');
         }
+
+        await this._cacheService.delete(`playlist:${playlistId}`);
 
         this._playlistSongActivitiesService.addPlaylistSongActivity({
             playlistId, songId, credentialId, action,
