@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const config = require('../../utils/config');
 
 class StorageService {
     constructor() {
@@ -7,7 +8,7 @@ class StorageService {
 
     writeFile(file, meta) {
         const parameter = {
-            Bucket: process.env.AWS_BUCKET_NAME,
+            Bucket: config.s3.bucketName,
             Key: +new Date() + meta.filename,
             Body: file._data, // buffer
             ContentType: meta.headers['content-type'],

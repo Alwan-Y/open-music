@@ -6,6 +6,8 @@ const Inert = require('@hapi/inert');
 
 const ClientError = require('./exceptions/ClientError');
 
+const config = require('./utils/config');
+
 // album
 const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService');
@@ -51,7 +53,15 @@ const uploads = require('./api/uploads');
 const StorageService = require('./services/S3/StorageService');
 const UploadsValidator = require('./validator/uploads');
 
+// user album likes
+const userAlbumLikes = require('./api/userAlbumLikes');
+const UserAlbumLikesService = require('./services/postgres/UserAlbumLikesService');
+
+// cache
+const CacheService = require('./services/redis/CacheService');
+
 const init = async () => {
+    const cacheService = new CacheService();
     const playlistSongActivitiesService = new PlaylistSongActivitiesService();
     const albumsService = new AlbumsService();
     const songsService = new SongsService();
@@ -62,10 +72,11 @@ const init = async () => {
         collaborationsService, playlistSongActivitiesService,
     );
     const storageService = new StorageService();
+    const userAlbumLikesService = new UserAlbumLikesService(cacheService);
 
     const server = Hapi.server({
-        port: process.env.PORT,
-        host: process.env.HOST,
+        port: config.app.port,
+        host: config.app.host,
         routes: {
             cors: {
                 origin: ['*'],
@@ -83,12 +94,12 @@ const init = async () => {
     ]);
 
     server.auth.strategy('openmusic_jwt', 'jwt', {
-        keys: process.env.ACCESS_TOKEN_KEY,
+        keys: config.jwt.token.access,
         verify: {
             aud: false,
             iss: false,
             sub: false,
-            maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+            maxAgeSec: config.jwt.age,
         },
         validate: (artifacts) => ({
             isValid: true,
@@ -165,6 +176,13 @@ const init = async () => {
                 storageService,
                 albumsService,
                 validator: UploadsValidator,
+            },
+        },
+        {
+            plugin: userAlbumLikes,
+            options: {
+                userAlbumLikesService,
+                albumsService,
             },
         },
     ]);
