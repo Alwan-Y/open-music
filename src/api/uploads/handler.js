@@ -22,11 +22,8 @@ class UploadsHandler {
         const response = h.response({
             status: 'success',
             message: 'Gambar berhasil diunggah',
-            data: { // delete nanti
-                fileLocation,
-            },
         });
-        response.code(413);
+        response.code(201);
         return response;
     }
 }
